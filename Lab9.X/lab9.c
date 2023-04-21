@@ -2,7 +2,7 @@
  * File:   prelab9.c
  * Author: Luis Pedro Gonzalez 21513
  *
- * Created on 20 de abril de 2023, 23:40 PM
+ * Created on 20 de abril de 2023, 21:16 PM
  */
 
 
@@ -30,19 +30,20 @@
 
 //variable
 #define _XTAL_FREQ 1000000 //frec de 1mhz
-#define dirEEPROM 0x01 // variable con la direccion del epprom
-
-//uint8_t pot = 0; //alamcena el valor del potenciometro
-
-//uint8_t address = 0x01; // variable con la deireccion de los datodos en epeprom
+//#define dirEEPROM 0x01 // variable con la direccion del epprom
 
 int dormir = 0 ; //bandera para indicar si esta en modo sleep 
 uint8_t potValue = 0;
 
+//uint8_t pot = 0; //alamcena el valor del potenciometro
+uint8_t address = 0x04; // variable con la deireccion de los datodos en epeprom
+
+
+
 //prototipos
 void setup(void);
-//void EEPROMWRITE(uint8_t address, uint8_t data); //lectura de eeprom
-//uint8_t EEPROMREAD(uint8_t adress); //lectura del eeprom
+void EEPROMWRITE(uint8_t address, uint8_t data); //lectura de eeprom
+uint8_t EEPROMREAD(uint8_t address); //lectura del eeprom
 
 void __interrupt() isr(void){
     
@@ -66,6 +67,12 @@ void __interrupt() isr(void){
             PORTEbits.RE0 = 1 ; //encender un led para indicarme que sleep esta encdedio
             SLEEP(); //poner el pic en modo sleep
         }
+        
+        else if (PORTBbits.RB2 == 0){
+            dormir = 0 ; //apagar bandera de dormit
+            PORTEbits.RE0 = 0; //apagar led que indica si esta dormido 
+            EEPROMWRITE(address, potValue); //escribir valor del potenciometro en el eeprom
+        }
         INTCONbits.RBIF = 0; 
 
     }
@@ -87,6 +94,7 @@ void main(void){
             }
             
         }
+        PORTD = EEPROMREAD(address); //mostrar el valor del eeprom en portd 
     }
     
 }
@@ -104,10 +112,12 @@ void setup(void){
     //botones
     TRISBbits.TRISB0 = 1; //rb0 como entrada
     TRISBbits.TRISB1 = 1; //rb1 como entrada 
+    TRISBbits.TRISB2 = 1; //rb1 como entrada 
+
     
     TRISC = 0x00;
     TRISD = 0x00;
-    TRISE = 0x00; //re0 como entrada
+    TRISE = 0x00; 
     
     //limpiar puertos 
     PORTA = 0x00;
@@ -120,6 +130,8 @@ void setup(void){
     OPTION_REGbits.nRBPU = 0; //habilitarr pullups
     WPUBbits.WPUB0 = 1;
     WPUBbits.WPUB1 = 1; 
+    WPUBbits.WPUB2 = 1; 
+
     
 //------------interrupciones-----------------
     INTCONbits.GIE = 1; //habilitar interrupciones globales
@@ -128,6 +140,7 @@ void setup(void){
     
     IOCBbits.IOCB0 = 1; //habilitar interrupciones en rb0
     IOCBbits.IOCB1 = 1; // habilitar interrupciones en rb1
+    IOCBbits.IOCB2 = 1; // habilitar interrupcion en el rb2
     
     INTCONbits.RBIF = 0; //limpirar bander de interrupcion de portb
     PIR1bits.ADIF = 0; //limpieza de bandera de interrupcion del adc
@@ -159,28 +172,31 @@ void setup(void){
 
 
 ////----------funciones--------------
-//void EEPROMWRITE(uint8_t data, uint8_t address){
-//    EEADR = address;
-//    EEDAT = data;
-//    
-//    EECON1bits.EEPGD = 0; //escribe en la memoria de datos
-//    EECON1bits.WREN = 1; // habiliota escritura en eeprom 
-//    
-//    INTCONbits.GIE = 0; //deshabilita las interrupciones 
-//    
-//    
-//    //obligatorio
-//    EECON2 = 0x55;
-//    EECON2 = 0xAA;
-//    EECON1bits.WR = 1; //habilitar escritua
-//    
-//    EECON1bits.WREN = 0; //apagamos la escritura
-//            
-//}
-//
-//uint8_t EEPROMREAD(uint8_t address){
-//    EEADR = address ;
-//    EECON1bits.EEPGD = 0;
-//    EECON1bits.RD = 1;
-//    return EEDAT;
-//}
+void EEPROMWRITE(uint8_t address, uint8_t data){
+    EEADR = address;//asignar direccin de datos 
+    EEDAT = data;//datos 
+    
+    EECON1bits.EEPGD = 0; //escribe en la memoria de datos
+    EECON1bits.WREN = 1; // habilita escritura en eeprom 
+    
+    INTCONbits.GIE = 0; //deshabilita las interrupciones 
+    
+
+    //obligatorio
+    EECON2 = 0x55;
+    EECON2 = 0xAA;
+    EECON1bits.WR = 1; //habilitar escritua
+    
+    EECON1bits.WREN = 0; //apagamos la escritura
+    
+    INTCONbits.RBIF = 0; // limpiamos bandera en el puerto b
+    INTCONbits.GIE = 1; //habilita interrupciones globales 
+            
+}
+
+uint8_t EEPROMREAD(uint8_t address){
+    EEADR = address ;//asgina la direccin 
+    EECON1bits.EEPGD = 0;//selecciona la menoria eeprom
+    EECON1bits.RD = 1;//habilita lectura de eeprom
+    return EEDAT;//retorna el valor de la direccion leida
+}
