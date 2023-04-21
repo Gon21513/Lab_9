@@ -2,7 +2,7 @@
  * File:   prelab9.c
  * Author: Luis Pedro Gonzalez 21513
  *
- * Created on 19 de abril de 2023, 03:34 PM
+ * Created on 20 de abril de 2023, 03:34 PM
  */
 
 
@@ -48,7 +48,7 @@ void __interrupt() isr(void){
     if (PIR1bits.ADIF){//revisar las interrupciones en el adc
         if (ADCON0bits.CHS == 0){
             potValue = ADRESH; //pasar valor de adresh a potenciometro
-            PORTC = potValue;
+            PORTC = potValue; // enviar vzlor del potenciometro al puerto c
         }
         PIR1bits.ADIF = 0; //se limpia la bandera del adc
         
@@ -56,14 +56,14 @@ void __interrupt() isr(void){
     
     if (INTCONbits.RBIF){//revisar las interrupciones del portb
         if (PORTBbits.RB0 == 0){
-            dormir = 0;
+            dormir = 0; //apagar la bander de dormir 
             PORTEbits.RE0 = 0; //limpia el bits que inica el sleeps
         }
         
         else if (PORTBbits.RB1 == 0){
             dormir = 1; //encender la bandera de dormir
             PORTEbits.RE0 = 1 ; //encender un led para indicarme que sleep esta encdedio
-            SLEEP();
+            SLEEP(); //poner el pic en modo sleep
         }
         INTCONbits.RBIF = 0; 
 
@@ -98,7 +98,7 @@ void setup(void){
     ANSEL = 0b00000001; //canal an1 como entrada analogica
     ANSELH = 0x00;
     
-    TRISA = 0b00000001; // ra1 como entradaa
+    TRISA = 0b00000001; // ra0 como entradaa
     
     //botones
     TRISBbits.TRISB0 = 1; //rb0 como entrada
@@ -157,29 +157,3 @@ void setup(void){
 
 
 
-////----------funciones--------------
-//void EEPROMWRITE(uint8_t data, uint8_t address){
-//    EEADR = address;
-//    EEDAT = data;
-//    
-//    EECON1bits.EEPGD = 0; //escribe en la memoria de datos
-//    EECON1bits.WREN = 1; // habiliota escritura en eeprom 
-//    
-//    INTCONbits.GIE = 0; //deshabilita las interrupciones 
-//    
-//    
-//    //obligatorio
-//    EECON2 = 0x55;
-//    EECON2 = 0xAA;
-//    EECON1bits.WR = 1; //habilitar escritua
-//    
-//    EECON1bits.WREN = 0; //apagamos la escritura
-//            
-//}
-//
-//uint8_t EEPROMREAD(uint8_t address){
-//    EEADR = address ;
-//    EECON1bits.EEPGD = 0;
-//    EECON1bits.RD = 1;
-//    return EEDAT;
-//}
