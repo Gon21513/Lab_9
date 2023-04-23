@@ -29,11 +29,8 @@
 
 //variable
 #define _XTAL_FREQ 1000000 //frec de 1mhz
-#define dirEEPROM 0x01 // variable con la direccion del epprom
 
-//uint8_t pot = 0; //alamcena el valor del potenciometro
 
-//uint8_t address = 0x01; // variable con la deireccion de los datodos en epeprom
 
 int dormir = 0 ; //bandera para indicar si esta en modo sleep 
 uint8_t potValue = 0;
