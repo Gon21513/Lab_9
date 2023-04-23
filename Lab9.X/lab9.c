@@ -1,5 +1,5 @@
 /* 
- * File:   prelab9.c
+ * File:   lab9.c
  * Author: Luis Pedro Gonzalez 21513
  *
  * Created on 20 de abril de 2023, 21:16 PM
@@ -57,20 +57,20 @@ void __interrupt() isr(void){
     }
     
     if (INTCONbits.RBIF){//revisar las interrupciones del portb
-        if (PORTBbits.RB0 == 0){
+        if (PORTBbits.RB0 == 0){//enceder
             dormir = 0; //apagar la bander de dormir 
-            PORTEbits.RE0 = 0; //limpia el bits que inica el sleeps
+            PORTEbits.RE0 = 1; //limpia el bits que inica el sleeps
         }
         
         else if (PORTBbits.RB1 == 0){
             dormir = 1; //encender la bandera de dormir
-            PORTEbits.RE0 = 1 ; //encender un led para indicarme que sleep esta encdedio
+            PORTEbits.RE0 = 0 ; //encender un led para indicarme que sleep esta encdedio
             SLEEP(); //poner el pic en modo sleep
         }
         
         else if (PORTBbits.RB2 == 0){
-            dormir = 0 ; //apagar bandera de dormit
-            PORTEbits.RE0 = 0; //apagar led que indica si esta dormido 
+            dormir = 0 ; //apagar bandera de dormir
+            PORTEbits.RE0 = 1; //apagar led que indica si esta dormido 
             EEPROMWRITE(address, potValue); //escribir valor del potenciometro en el eeprom
         }
         INTCONbits.RBIF = 0; 
@@ -87,10 +87,13 @@ void main(void){
     setup();
     
     while(1){
+        
+        //PORTEbits.RE1 = 1; //apagar led que indica si esta dormido 
+
         if (dormir == 0){//revisar si el pic esta en modo sleep
             if (ADCON0bits.GO == 0){//revisar si se inicial la ocnversion adc
                 ADCON0bits.GO = 1; //iniciar la conversion 
-                __delay_us(10);
+                __delay_us(40);
             }
             
         }
